@@ -2,26 +2,25 @@ const express = require("express");
 // const users = require("./MOCK_DATA.json");
 const fs = require("fs");
 const mongoose  = require("mongoose");
+
 const app = express();
 const port = 8000;
 
+mongoose.connect("mongodb://127.0.0.1:27017/info")
+.then(() => console.log("MongoDb Connected"))
+.catch(error => console.log('MongoDb error', error));
 
-//Connect to the MongoDb DataBase--
-mongoose.connect("mongodb://127.0.0.1:27017/myData-1")
-.then(() => console.log("MonogDb Connected"))
-.catch(error => console.log("Mongo Error", error));
-
-//Schema -- Define Structure--
+//Creating Schema--
 const userSchema = new mongoose.Schema({
     firstName:{
         type: String,
         required: true,
-    }, 
-    lastName: {
+    },
+    lastName:{
         type: String
     },
     email:{
-        type:String,
+        type: String,
         required: true,
         unique: true
     },
@@ -31,10 +30,11 @@ const userSchema = new mongoose.Schema({
     jobTitle:{
         type: String
     }
-},{ timestamps: true })
+})
 
-const User = mongoose.model("user", userSchema);
-
+//Creating Schema as Model--
+const User = mongoose.model('user',userSchema);
+console.log(User)
 //Express MiddleWare - Plugin
 app.use(express.urlencoded({ extended: false}));
 
@@ -64,16 +64,12 @@ app.use((req, res, next) =>{
 
 
 //Show all user list with HTML Elements :--
-app.get("/users", async (req, res) => {
-    const allDBusers = await User.find({});
+app.get("/users", async(req, res) => {
+    const allDbUser = await User.find({});
     const html = `
-    <style>
-    th,td{
-        padding:1rem;
-    }
-    </style>
+    <style>th,td{padding:1rem}</style>
         <center><h1>Employee List</h1>
-        <table border="1px" style="border-collapse: collapse;">
+        <table border="1px"  border-collapse: "collapse">
         <tr>
             <th>Id</th>
             <th>FirstName</th>
@@ -82,14 +78,14 @@ app.get("/users", async (req, res) => {
             <th>Gender</th>
             <th>JobTitle</th>
         </tr>
-        ${allDBusers.map((user) => 
+        ${allDbUser.map((user) => 
             `<tr>
             <td>${user.id}</td>
             <td>${user.firstName}</td>
             <td>${user.lastName}</td>
             <td>${user.email}</td>
             <td>${user.gender}</td>
-            <td>${user.jobTitle}</td>
+            <td>${user.job_title}</td>
             </tr>
         `).join("")}
         
@@ -101,8 +97,8 @@ app.get("/users", async (req, res) => {
 
 //Rest 
 app.get("/api/users", async(req, res) => {
-    const allDBusers = await User.find({});
-    return res.json(allDBusers);
+    const user = await User.find({});
+    return res.json(user);
 })
 
 
@@ -110,8 +106,8 @@ app.get("/api/users", async(req, res) => {
 //Showing users with id :--
 app
     .route("/api/users/:id")
-    .get(async (req, res) => {
-        const user = await User.findById(req.params.id);
+    .get(async(req, res) => {
+        const user = await User.findById(req.params.id)
         // const id = Number(req.params.id);
         // const user = users.find((user) => user.id === id);
         if(!user) return res.status(404).json({error: "Oops..!!! User not found"});
@@ -119,13 +115,13 @@ app
     })
     .patch(async(req, res) => {
         //Edit user with id
-        await User.findByIdAndUpdate(req.params.id, { lastName: "changed"});
-        return res.json({ status: "Users update successfully"});
+        await User.findByIdAndUpdate(req.params.id, {lastName: "Vishwakarma"})
+        return res.json({ status: "Succes = User updated SuccessFully" });
     })
     .delete(async(req, res) => {
         //Delte user with id
         await User.findByIdAndDelete(req.params.id)
-        return res.json({ status: "Sucess = User Delted SuccessFully" });
+        return res.json({ status: "Success = User Delted Successfully" });
     })
 
 
@@ -136,18 +132,14 @@ app.post("/api/users", async(req, res) => {
     if(!body || !body.first_name || !body.last_name || !body.email || !body.gender || !body.job_title){
         return res.status(400).json( {msg: "All field are required"})
     }
-
-    const result = await User.create({
+    const user = await User.create({
         firstName: body.first_name,
         lastName: body.last_name,
         email: body.email,
         gender: body.gender,
-        jobTitle: body.job_title
-    });
-    console.log("User can be created", result);
-
-    return res.status(201).json({msg : "Success = User can be creted"})
-
+        jobTile: body.job_title
+    })
+    return res.status(201).json({msg: "Success = User created successfully"});
     // users.push({...body, id: users.length + 1});
     // fs.writeFile("./MOCK_DATA.json",JSON.stringify(users), (err,data) =>{
     //     return res.status(201).json({ status: "Success -- ", id: users.length });
