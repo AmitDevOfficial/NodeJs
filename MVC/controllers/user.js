@@ -21,7 +21,7 @@ async function handelGetAllUsers(req,res){
             <td>${user.lastName}</td>
             <td>${user.email}</td>
             <td>${user.gender}</td>
-            <td>${user.job_title}</td>
+            <td>${user.jobTitle}</td>
             </tr>
         `).join("")}
         
@@ -62,7 +62,7 @@ async function handelCreateUser(req,res){
         lastName: body.last_name,
         email: body.email,
         gender: body.gender,
-        jobTile: body.job_title
+        jobTitle: body.job_title
     })
     return res.status(201).json({msg: "Success = User created successfully"});
 }
