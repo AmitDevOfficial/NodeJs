@@ -1,7 +1,8 @@
 const express = require("express");
 const { connectMongoDB } = require("./connect")
+const cookieParser = require("cookie-parser")
 const URL = require("./models/url")
-
+const { checkForAuthenticationValue, restrictTo } = require("./middleware/auth")
 const path = require("path")
 
 
@@ -13,17 +14,22 @@ const app = express();
 const port = 8000;
 
 connectMongoDB("mongodb://127.0.0.1:27017/customer-url")
-    .then(() => console.log("MonogDB Connected"));
-// .catch(error => console.log("MongoDB Not Connected", error));
+    .then(() => console.log("MonogDB Connected"))
+.catch(error => console.log("MongoDB Not Connected", error));
 
 app.set('view engine', 'ejs');
 app.set("views", path.resolve("./views"));
 
 app.use(express.json());
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({extended: false}));
+
+app.use(cookieParser());
 
 
-app.use("/url", urlRoute);
+
+app.use(checkForAuthenticationValue);
+
+app.use("/url", restrictTo(["NORMAL", "ADMIN"]), urlRoute);
 app.use("/user", userRoute);
 app.use("/", staticRoute);
 
