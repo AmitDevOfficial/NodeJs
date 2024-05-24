@@ -23,11 +23,22 @@ router.post("/signup", async (req, res) => {
 
 router.post("/signin", async (req, res) => {
     const { email, password } = req.body;
-    console.log(email, password)
-    const user = User.matchPassword(email, password)
+   try {
+    const token = await User.matchPasswordAndGenerateToken(email, password)
 
-    console.log("User", user);
+    // console.log("User", user);
+    console.log("token", token);
+    
+    /*--------We can create cookie and save the cookie fo the browser---------*/
+    return res.cookie("token", token).redirect("/")
+   } catch (error) {
+    return res.render("signin", {
+        error: "Invaild Credentials",
+    });
+   }
+});
 
-    return res.redirect("/")
+router.get("/logout", async (req, res) => {
+    res.clearCookie("token").redirect("/")
 })
 module.exports = router;
